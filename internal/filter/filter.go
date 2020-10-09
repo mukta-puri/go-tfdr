@@ -2,14 +2,14 @@ package filter
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
 )
 
-var globalResources []string = []string{
+var GlobalResources []string = []string{
 	"aws_cloudfront_distribution",
 	"aws_cloudfront_origin_access_identity",
 	"aws_iam_access_key",
@@ -27,8 +27,11 @@ var globalResources []string = []string{
 }
 
 // StateFilter &
-func StateFilter(vs []models.Resource, f func(models.Resource, *models.FilterConfig) models.Resource, configFileName string) []models.Resource {
-	filterConfig := readFiltersFromFile(configFileName)
+func StateFilter(vs []models.Resource, f func(models.Resource, *models.FilterConfig) models.Resource, configFileName string) ([]models.Resource, error) {
+	filterConfig, err := readFiltersFromFile(configFileName)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to get state filters. Err: %v", err)
+	}
 	vsf := make([]models.Resource, 0)
 	for _, v := range vs {
 		result := f(v, &filterConfig)
@@ -36,23 +39,23 @@ func StateFilter(vs []models.Resource, f func(models.Resource, *models.FilterCon
 			vsf = append(vsf, result)
 		}
 	}
-	return vsf
+	return vsf, nil
 }
 
 // CopyResourceFilterFunc &
 var CopyResourceFilterFunc = func(resource models.Resource, filterConfig *models.FilterConfig) models.Resource {
-	for _, globalResource := range globalResources {
+	for _, globalResource := range GlobalResources {
 		if resource.Type == globalResource {
 			return resource
 		}
 	}
 	for _, filter := range filterConfig.Filters {
-		if resource.Mode == "managed" && resource.Module == filter.Original.Module && resource.Name == filter.Original.Name && resource.Type == filter.Original.Type {
-			resource.Module = filter.New.Module
-			resource.Name = filter.New.Name
-			resource.Type = filter.New.Type
+		if resource.Mode == "managed" && resource.Module == filter.FilterProperties.Module && resource.Name == filter.FilterProperties.Name && resource.Type == filter.FilterProperties.Type {
+			if filter.NewProperties.Name != "" {
+				resource.Name = filter.NewProperties.Name
+			}
 
-			for k, v := range filter.New.Attributes {
+			for k, v := range filter.NewProperties.Attributes {
 				resource.Instances[0].Attributes[k] = v
 			}
 
@@ -65,13 +68,14 @@ var CopyResourceFilterFunc = func(resource models.Resource, filterConfig *models
 
 // DeleteResourceFilterFunc &
 var DeleteResourceFilterFunc = func(resource models.Resource, filterConfig *models.FilterConfig) models.Resource {
-	for _, globalResource := range globalResources {
+	for _, globalResource := range GlobalResources {
 		if resource.Type == globalResource {
 			return models.Resource{}
 		}
 	}
+
 	for _, filter := range filterConfig.Filters {
-		if resource.Mode == "managed" && resource.Module == filter.New.Module && resource.Name == filter.New.Name && resource.Type == filter.New.Type {
+		if resource.Mode == "managed" && resource.Module == filter.FilterProperties.Module && resource.Name == filter.FilterProperties.Name && resource.Type == filter.FilterProperties.Type {
 			return models.Resource{}
 		}
 	}
@@ -79,15 +83,16 @@ var DeleteResourceFilterFunc = func(resource models.Resource, filterConfig *mode
 	return resource
 }
 
-func readFiltersFromFile(configFileName string) models.FilterConfig {
+func readFiltersFromFile(configFileName string) (models.FilterConfig, error) {
 	filterConfigFile, err := os.Open(configFileName)
 	if err != nil {
-		log.Fatal(err)
+		return models.FilterConfig{}, fmt.Errorf("Unable to read file. Err: %v", err)
 	}
 	configByteValue, _ := ioutil.ReadAll(filterConfigFile)
 
 	var filterConfig models.FilterConfig
 
 	json.Unmarshal(configByteValue, &filterConfig)
-	return filterConfig
+
+	return filterConfig, nil
 }

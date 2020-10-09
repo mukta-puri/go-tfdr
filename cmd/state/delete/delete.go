@@ -26,7 +26,7 @@ var DeleteStateCmd = &cobra.Command{
 		return config.ValidateConfig()
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		api.DeleteTFState(workspaceName, filterConfigFile)
+		api.DeleteTFStateResources(workspaceName, filterConfigFile)
 	},
 }
 

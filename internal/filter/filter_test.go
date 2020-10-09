@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/tj/assert"
+	g "github.com/tyler-technologies/go-terraform-state-copy/internal/config/globalresources"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/testutil"
 )
@@ -31,7 +32,7 @@ func (s *TestSuite) TestCopyStateFilter() {
 	fr, err := StateFilter(res, CopyResourceFilterFunc, "./testdata/filterConfig.json")
 	assert.NoError(s.T(), err)
 	assert.NotNil(s.T(), fr)
-	assert.Equal(s.T(), numFilters+len(GlobalResources), len(fr))
+	assert.Equal(s.T(), numFilters+len(g.GlobalResources), len(fr))
 	assert.True(s.T(), contains(fr, "module.test_module_1", "managed", "type_1"))
 	assert.True(s.T(), contains(fr, "module.test_module_2", "managed", "type_2"))
 	assert.Equal(s.T(), "new_name_1", get(fr, "module.test_module_1", "managed", "type_1").Name)
@@ -39,14 +40,14 @@ func (s *TestSuite) TestCopyStateFilter() {
 	assert.Equal(s.T(), "", get(fr, "module.test_module_2", "managed", "type_2").Instances[0].Attributes["attr2"])
 }
 
-func (s *TestSuite) TestDelereStateFilter() {
+func (s *TestSuite) TestDeleteStateFilter() {
 	var res = testutil.NewStateResources()
 	numFilters := 2
 
 	fr, err := StateFilter(res, DeleteResourceFilterFunc, "./testdata/filterConfig.json")
 	assert.NoError(s.T(), err)
 	assert.NotNil(s.T(), fr)
-	assert.Equal(s.T(), len(res)-len(GlobalResources)-numFilters, len(fr))
+	assert.Equal(s.T(), len(res)-len(g.GlobalResources)-numFilters, len(fr))
 	assert.False(s.T(), contains(fr, "module.test_module_1", "managed", "type_1"))
 	assert.False(s.T(), contains(fr, "module.test_module_2", "managed", "type_2"))
 }

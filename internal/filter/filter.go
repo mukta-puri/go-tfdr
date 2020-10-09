@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	g "github.com/tyler-technologies/go-terraform-state-copy/internal/config/globalresources"
+	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
 )
 
@@ -28,7 +28,7 @@ func StateFilter(vs []models.Resource, f func(models.Resource, *models.FilterCon
 
 // CopyResourceFilterFunc &
 var CopyResourceFilterFunc = func(resource models.Resource, filterConfig *models.FilterConfig) models.Resource {
-	for _, globalResource := range g.GlobalResources {
+	for _, globalResource := range config.GlobalResources {
 		if resource.Type == globalResource {
 			return resource
 		}
@@ -52,7 +52,7 @@ var CopyResourceFilterFunc = func(resource models.Resource, filterConfig *models
 
 // DeleteResourceFilterFunc &
 var DeleteResourceFilterFunc = func(resource models.Resource, filterConfig *models.FilterConfig) models.Resource {
-	for _, globalResource := range g.GlobalResources {
+	for _, globalResource := range config.GlobalResources {
 		if resource.Type == globalResource {
 			return models.Resource{}
 		}

@@ -3,17 +3,21 @@ package testutil
 import (
 	"fmt"
 
-	g "github.com/tyler-technologies/go-terraform-state-copy/internal/config/globalresources"
+	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
 )
 
 var defaultNonGlobalResources int = 10
 
-var DefaultTerraformVersion string = "0.13.4"
-var DefaultLineage string = "test"
-var DefaultVersion int = 4
-var DefaultSerial int64 = int64(1)
+// DefaultTerraformVersion &
+var (
+	DefaultTerraformVersion string = "0.13.4"
+	DefaultLineage          string = "test"
+	DefaultVersion          int    = 4
+	DefaultSerial           int64  = int64(1)
+)
 
+// NewState &
 func NewState() models.State {
 	return models.State{
 		Version:          DefaultVersion,
@@ -25,10 +29,12 @@ func NewState() models.State {
 	}
 }
 
+// DefaultNumResources &
 func DefaultNumResources() int {
-	return defaultNonGlobalResources + len(g.GlobalResources)
+	return defaultNonGlobalResources + len(config.GlobalResources)
 }
 
+// NewStateResources &
 func NewStateResources() []models.Resource {
 	resources := make([]models.Resource, 0)
 
@@ -50,7 +56,7 @@ func NewStateResources() []models.Resource {
 		resources = append(resources, res)
 	}
 
-	for i, v := range g.GlobalResources {
+	for i, v := range config.GlobalResources {
 		res := models.Resource{
 			Module: fmt.Sprintf("module.test_global_module_%v", i),
 			Mode:   "managed",

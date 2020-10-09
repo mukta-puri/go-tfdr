@@ -71,7 +71,7 @@ var DeleteResourceFilterFunc = func(resource models.Resource, filterConfig *mode
 		}
 	}
 	for _, filter := range filterConfig.Filters {
-		if resource.Mode == "managed" && resource.Module == filter.Original.Module && resource.Name == filter.Original.Name && resource.Type == filter.Original.Type {
+		if resource.Mode == "managed" && resource.Module == filter.New.Module && resource.Name == filter.New.Name && resource.Type == filter.New.Type {
 			return models.Resource{}
 		}
 	}

@@ -47,7 +47,7 @@ func CopyTFState(origWorkspaceName string, newWorkspaceName string, filterConfig
 	return nil
 }
 
-// DeleteTFState &
+// DeleteTFStateResources &
 func DeleteTFStateResources(workspaceName string, filterConfigFileName string) error {
 	state, err := pullTFState(workspaceName)
 	if err != nil {

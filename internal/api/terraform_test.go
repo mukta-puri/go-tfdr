@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/filter"
+	g "github.com/tyler-technologies/go-terraform-state-copy/internal/config/globalresources"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/logging"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/testutil"
@@ -79,7 +79,7 @@ func (s *TestSuite) TestCopyTFState() {
 		assert.Equal(s.T(), testutil.DefaultVersion, state.Version)
 		assert.Equal(s.T(), "", state.Lineage)
 		assert.Equal(s.T(), int64(1), state.Serial)
-		assert.Equal(s.T(), numFilters+len(filter.GlobalResources), len(state.Resources))
+		assert.Equal(s.T(), numFilters+len(g.GlobalResources), len(state.Resources))
 
 		resp, err := newJSONResponse("test2", "state-versions", "https://state")
 		assert.NoError(s.T(), err)
@@ -108,7 +108,7 @@ func (s *TestSuite) TestDeleteTFStateResources() {
 		assert.Equal(s.T(), testutil.DefaultVersion, state.Version)
 		assert.Equal(s.T(), testutil.DefaultLineage, state.Lineage)
 		assert.Equal(s.T(), testutil.DefaultSerial+1, state.Serial)
-		assert.Equal(s.T(), testutil.DefaultNumResources()-numFilters-len(filter.GlobalResources), len(state.Resources))
+		assert.Equal(s.T(), testutil.DefaultNumResources()-numFilters-len(g.GlobalResources), len(state.Resources))
 
 		resp, err := newJSONResponse("test", "state-versions", "https://state")
 		assert.NoError(s.T(), err)

@@ -12,7 +12,7 @@ import (
 
 func Create(contents string) {
 	homeDir, _ := os.UserHomeDir()
-	configDir := filepath.Join(homeDir, ".tfstatecopy")
+	configDir := filepath.Join(homeDir, ".tfdr")
 	fileName := "config.yaml"
 	if _, err := os.Stat(configDir); err != nil {
 		if os.IsNotExist(err) {
@@ -48,5 +48,5 @@ func saveConfig(cfgFile string, contents string) {
 	}
 	_ = file.Sync()
 
-	fmt.Println("\nSuccessfully configured terraform state copy script. Use `tfstatecopy config get` to view your configuration.")
+	fmt.Println("\nSuccessfully configured terraform disaster recovery script. Use `tfdr config get` to view your configuration.")
 }

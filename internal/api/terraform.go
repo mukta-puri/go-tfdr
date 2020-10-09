@@ -23,7 +23,10 @@ func CopyTFState(origWorkspaceName string, newWorkspaceName string, filterConfig
 		return fmt.Errorf("Unable to read origin state. Error: %v", err)
 	}
 
-	newResources := filter.StateFilter(oldState.Resources, filter.CopyResourceFilterFunc, filterConfigFileName)
+	newResources, err := filter.StateFilter(oldState.Resources, filter.CopyResourceFilterFunc, filterConfigFileName)
+	if err != nil {
+		return fmt.Errorf("Unable to filter resources from state. Error: %v", err)
+	}
 
 	newState, err := pullTFState(newWorkspaceName)
 	if newState.TerraformVersion != "" {
@@ -36,7 +39,7 @@ func CopyTFState(origWorkspaceName string, newWorkspaceName string, filterConfig
 	newState.Resources = newResources
 	newState.Serial++
 
-	err = createTFState(newState, newWorkspaceName)
+	err = createTFStateVersion(newState, newWorkspaceName)
 	if err != nil {
 		return fmt.Errorf("Unable to create new state version. Error: %v", err)
 	}
@@ -45,16 +48,19 @@ func CopyTFState(origWorkspaceName string, newWorkspaceName string, filterConfig
 }
 
 // DeleteTFState &
-func DeleteTFState(workspaceName string, filterConfigFileName string) error {
+func DeleteTFStateResources(workspaceName string, filterConfigFileName string) error {
 	state, err := pullTFState(workspaceName)
 	if err != nil {
 		return fmt.Errorf("Unable to read origin state. Error: %v", err)
 	}
 
-	state.Resources = filter.StateFilter(state.Resources, filter.DeleteResourceFilterFunc, filterConfigFileName)
+	state.Resources, err = filter.StateFilter(state.Resources, filter.DeleteResourceFilterFunc, filterConfigFileName)
+	if err != nil {
+		return fmt.Errorf("Unable to filter resources from state. Error: %v", err)
+	}
 	state.Serial++
 
-	err = createTFState(state, workspaceName)
+	err = createTFStateVersion(state, workspaceName)
 	if err != nil {
 		return fmt.Errorf("Unable to create new state version. Error: %v", err)
 	}
@@ -62,7 +68,7 @@ func DeleteTFState(workspaceName string, filterConfigFileName string) error {
 
 }
 
-func createTFState(state models.State, workspaceName string) error {
+func createTFStateVersion(state models.State, workspaceName string) error {
 	c := config.GetConfig()
 
 	tfeConfig := &tfe.Config{

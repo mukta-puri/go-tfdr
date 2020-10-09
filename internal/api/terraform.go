@@ -6,12 +6,15 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/go-tfe"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/filter"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
 )
+
+var httpClient = &http.Client{}
 
 // CopyTFState &
 func CopyTFState(origWorkspaceName string, newWorkspaceName string, filterConfigFileName string) error {
@@ -62,11 +65,12 @@ func DeleteTFState(workspaceName string, filterConfigFileName string) error {
 func createTFState(state models.State, workspaceName string) error {
 	c := config.GetConfig()
 
-	config := &tfe.Config{
-		Token: c.TerraformTeamToken,
+	tfeConfig := &tfe.Config{
+		HTTPClient: httpClient,
+		Token:      c.TerraformTeamToken,
 	}
 
-	client, err := tfe.NewClient(config)
+	client, err := tfe.NewClient(tfeConfig)
 	if err != nil {
 		return fmt.Errorf("Cannot create tfe client. Err: %v", err)
 	}
@@ -105,11 +109,12 @@ func createTFState(state models.State, workspaceName string) error {
 func pullTFState(workspaceName string) (models.State, error) {
 	c := config.GetConfig()
 
-	config := &tfe.Config{
-		Token: c.TerraformTeamToken,
+	tfeConfig := &tfe.Config{
+		HTTPClient: httpClient,
+		Token:      c.TerraformTeamToken,
 	}
 
-	client, err := tfe.NewClient(config)
+	client, err := tfe.NewClient(tfeConfig)
 	if err != nil {
 		return models.State{}, fmt.Errorf("Cannot create tfe client. Err: %v", err)
 	}

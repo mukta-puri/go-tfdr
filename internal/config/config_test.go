@@ -13,7 +13,6 @@ import (
 
 	vpr "github.com/ory/viper"
 	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -50,9 +49,9 @@ func (s *TestSuite) TestValidateConfig() {
 			c.tftoken, c.tforgname
 		err := ValidateConfig()
 		if c.errorType != nil {
-			assert.True(s.T(), errors.Is(err, c.errorType), c.message)
+			s.True(errors.Is(err, c.errorType), c.message)
 		} else {
-			assert.NoError(s.T(), err, c.message)
+			s.NoError(err, c.message)
 		}
 	}
 }
@@ -74,12 +73,12 @@ func (s *TestSuite) TestReadFromHome() {
 	cfgFile := path.Join(dir, ".tfdr/config.yaml")
 	defer os.RemoveAll(dir)
 	err := createTestFile(cfgFile, "test_tf_team_token", "test_org_name", "debug")
-	assert.NoError(s.T(), err)
+	s.NoError(err)
 	InitConfig("")
 
-	assert.Equal(s.T(), "test_tf_team_token", GetConfig().TerraformTeamToken, "tf token should be 'test_tf_team_token'")
-	assert.Equal(s.T(), "test_org_name", GetConfig().TerraformOrgName, "tf org name should be 'test_org_name'")
-	assert.Equal(s.T(), "debug", GetConfig().LogLevel, "log level should be 'debug'")
+	s.Equal("test_tf_team_token", GetConfig().TerraformTeamToken, "tf token should be 'test_tf_team_token'")
+	s.Equal("test_org_name", GetConfig().TerraformOrgName, "tf org name should be 'test_org_name'")
+	s.Equal("debug", GetConfig().LogLevel, "log level should be 'debug'")
 }
 
 func (s *TestSuite) TestInitConfigFile() {
@@ -87,12 +86,12 @@ func (s *TestSuite) TestInitConfigFile() {
 
 	err := createTestFile(cfgFile, "init_tf_team_token", "init_org_name", "debug")
 	defer os.RemoveAll(cfgFile)
-	assert.NoError(s.T(), err, "should not error creating config file")
+	s.NoError(err, "should not error creating config file")
 	InitConfig(cfgFile)
 
-	assert.Equal(s.T(), "init_tf_team_token", configuration.TerraformTeamToken, "tf token should be 'init_tf_team_token'")
-	assert.Equal(s.T(), "init_org_name", configuration.TerraformOrgName, "tf org name should be 'init_org_name'")
-	assert.Equal(s.T(), "debug", configuration.LogLevel, "log level should be 'debug'")
+	s.Equal("init_tf_team_token", configuration.TerraformTeamToken, "tf token should be 'init_tf_team_token'")
+	s.Equal("init_org_name", configuration.TerraformOrgName, "tf org name should be 'init_org_name'")
+	s.Equal("debug", configuration.LogLevel, "log level should be 'debug'")
 }
 
 func (s *TestSuite) TestInitConfigEnv() {
@@ -105,9 +104,9 @@ func (s *TestSuite) TestInitConfigEnv() {
 
 	InitConfig(cfgFile)
 
-	assert.Equal(s.T(), "team_token", configuration.TerraformTeamToken, "tf token should be 'team_token'")
-	assert.Equal(s.T(), "org_name", configuration.TerraformOrgName, "tf org name should be 'org_name'")
-	assert.Equal(s.T(), "debug", configuration.LogLevel, "log level should be 'debug'")
+	s.Equal("team_token", configuration.TerraformTeamToken, "tf token should be 'team_token'")
+	s.Equal("org_name", configuration.TerraformOrgName, "tf org name should be 'org_name'")
+	s.Equal("debug", configuration.LogLevel, "log level should be 'debug'")
 }
 
 func (s *TestSuite) TestInitConfigFileOverrides() {
@@ -118,12 +117,12 @@ func (s *TestSuite) TestInitConfigFileOverrides() {
 
 	err := createTestFile(cfgFile, "overridden_team_token", "overriden_org_name", "info")
 	defer os.RemoveAll(cfgFile)
-	assert.NoError(s.T(), err, "should not error creating config file")
+	s.NoError(err, "should not error creating config file")
 	InitConfig(cfgFile)
 
-	assert.Equal(s.T(), "env_team_token", configuration.TerraformTeamToken, "tf token should be 'env_team_token'")
-	assert.Equal(s.T(), "env_org_name", configuration.TerraformOrgName, "tf org name should be 'env_org_name'")
-	assert.Equal(s.T(), "env_debug", configuration.LogLevel, "log level should be 'env_debug'")
+	s.Equal("env_team_token", configuration.TerraformTeamToken, "tf token should be 'env_team_token'")
+	s.Equal("env_org_name", configuration.TerraformOrgName, "tf org name should be 'env_org_name'")
+	s.Equal("env_debug", configuration.LogLevel, "log level should be 'env_debug'")
 }
 
 func (s *TestSuite) TestCreate() {
@@ -136,8 +135,8 @@ func (s *TestSuite) TestCreate() {
 		GenerateConfig(&in)
 	})
 	cfgFile := path.Join(dir, ".tfdr/config.yaml")
-	assert.FileExists(s.T(), cfgFile)
-	assert.Contains(s.T(), out, "\nSuccessfully configured terraform disaster recovery script. Use `tfdr config get` to view your configuration.")
+	s.FileExists(cfgFile)
+	s.Contains(out, "\nSuccessfully configured terraform disaster recovery script. Use `tfdr config get` to view your configuration.")
 }
 
 func readStdOut(f func()) string {

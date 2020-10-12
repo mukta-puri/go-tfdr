@@ -64,7 +64,7 @@ func TestRunSuite(t *testing.T) {
 
 func (s *TestSuite) TestCopyTFState() {
 	origState, err := json.Marshal(testutil.NewState())
-	assert.NoError(s.T(), err)
+	s.NoError(err)
 
 	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/workspaces/test/current-state-version", newResponder("test", "state-versions", "https://state"))
 	httpmock.RegisterResponder("GET", "https://state", httpmock.NewStringResponder(200, string(origState)))
@@ -74,24 +74,24 @@ func (s *TestSuite) TestCopyTFState() {
 
 	httpmock.RegisterResponder("POST", "https://app.terraform.io/api/v2/workspaces/test2/state-versions", func(req *http.Request) (*http.Response, error) {
 		state, err := decodeStateFromBody(req)
-		assert.NoError(s.T(), err)
+		s.NoError(err)
 
 		numFilters := 2
 
-		assert.Equal(s.T(), testutil.DefaultTerraformVersion, state.TerraformVersion)
-		assert.Equal(s.T(), testutil.DefaultVersion, state.Version)
-		assert.Equal(s.T(), "", state.Lineage)
-		assert.Equal(s.T(), int64(1), state.Serial)
-		assert.Equal(s.T(), numFilters+len(config.GlobalResources), len(state.Resources))
+		s.Equal(testutil.DefaultTerraformVersion, state.TerraformVersion)
+		s.Equal(testutil.DefaultVersion, state.Version)
+		s.Equal("", state.Lineage)
+		s.Equal(int64(1), state.Serial)
+		s.Equal(numFilters+len(config.GlobalResources), len(state.Resources))
 
 		resp, err := newJSONResponse("test2", "state-versions", "https://state")
-		assert.NoError(s.T(), err)
+		s.NoError(err)
 
 		return resp, nil
 	})
 
 	err = CopyTFState("test", "test2", "./testdata/filterConfig.json")
-	assert.NoError(s.T(), err)
+	s.NoError(err)
 }
 
 func (s *TestSuite) TestCopyTFStateNotEmptyDest() {
@@ -261,14 +261,15 @@ func (s *TestSuite) TestCreateTFStateVersionNoWorkspace() {
 }
 
 func (s *TestSuite) TestPullTFState() {
-	var currentState = string(readFile(s.T(), "./testdata/state.json"))
+	currentState, err := json.Marshal(testutil.NewState())
+	s.NoError(err)
 
 	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/workspaces/test/current-state-version", newResponder("test", "state-versions", "https://state"))
-	httpmock.RegisterResponder("GET", "https://state", httpmock.NewStringResponder(200, currentState))
+	httpmock.RegisterResponder("GET", "https://state", httpmock.NewStringResponder(200, string(currentState)))
 	st, err := pullTFState("test")
 	s.NoError(err)
 	s.NotNil(st)
-	s.Equal(1, len(st.Resources))
+	s.Equal(testutil.DefaultNumResources(), len(st.Resources))
 }
 
 func (s *TestSuite) TestPullTFStateNoState() {

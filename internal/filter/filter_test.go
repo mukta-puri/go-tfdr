@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/tj/assert"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/testutil"
@@ -20,9 +19,23 @@ func TestRunSuite(t *testing.T) {
 
 func (s *TestSuite) TestReadFiltersFromFile() {
 	filterConfig, err := readFiltersFromFile("./testdata/filterConfig.json")
-	assert.NoError(s.T(), err)
-	assert.NotNil(s.T(), filterConfig)
-	assert.Equal(s.T(), 2, len(filterConfig.Filters))
+	s.NoError(err)
+	s.NotNil(filterConfig)
+	s.Equal(2, len(filterConfig.Filters))
+}
+
+func (s *TestSuite) TestReadFiltersFromFileError() {
+	filterConfig, err := readFiltersFromFile("./testdata/not-found.json")
+	s.Error(err)
+	s.Nil(filterConfig)
+}
+
+func (s *TestSuite) TestReadStateFilterError() {
+	var res = testutil.NewStateResources()
+
+	fr, err := StateFilter(res, CopyResourceFilterFunc, "./testdata/not-found.json")
+	s.Error(err)
+	s.Nil(fr)
 }
 
 func (s *TestSuite) TestCopyStateFilter() {
@@ -30,14 +43,14 @@ func (s *TestSuite) TestCopyStateFilter() {
 	numFilters := 2
 
 	fr, err := StateFilter(res, CopyResourceFilterFunc, "./testdata/filterConfig.json")
-	assert.NoError(s.T(), err)
-	assert.NotNil(s.T(), fr)
-	assert.Equal(s.T(), numFilters+len(config.GlobalResources), len(fr))
-	assert.True(s.T(), contains(fr, "module.test_module_1", "managed", "type_1"))
-	assert.True(s.T(), contains(fr, "module.test_module_2", "managed", "type_2"))
-	assert.Equal(s.T(), "new_name_1", get(fr, "module.test_module_1", "managed", "type_1").Name)
-	assert.Equal(s.T(), "orig_name_2", get(fr, "module.test_module_2", "managed", "type_2").Name)
-	assert.Equal(s.T(), "", get(fr, "module.test_module_2", "managed", "type_2").Instances[0].Attributes["attr2"])
+	s.NoError(err)
+	s.NotNil(fr)
+	s.Equal(numFilters+len(config.GlobalResources), len(fr))
+	s.True(contains(fr, "module.test_module_1", "managed", "type_1"))
+	s.True(contains(fr, "module.test_module_2", "managed", "type_2"))
+	s.Equal("new_name_1", get(fr, "module.test_module_1", "managed", "type_1").Name)
+	s.Equal("orig_name_2", get(fr, "module.test_module_2", "managed", "type_2").Name)
+	s.Equal("", get(fr, "module.test_module_2", "managed", "type_2").Instances[0].Attributes["attr2"])
 }
 
 func (s *TestSuite) TestDeleteStateFilter() {
@@ -45,11 +58,11 @@ func (s *TestSuite) TestDeleteStateFilter() {
 	numFilters := 2
 
 	fr, err := StateFilter(res, DeleteResourceFilterFunc, "./testdata/filterConfig.json")
-	assert.NoError(s.T(), err)
-	assert.NotNil(s.T(), fr)
-	assert.Equal(s.T(), len(res)-len(config.GlobalResources)-numFilters, len(fr))
-	assert.False(s.T(), contains(fr, "module.test_module_1", "managed", "type_1"))
-	assert.False(s.T(), contains(fr, "module.test_module_2", "managed", "type_2"))
+	s.NoError(err)
+	s.NotNil(fr)
+	s.Equal(len(res)-len(config.GlobalResources)-numFilters, len(fr))
+	s.False(contains(fr, "module.test_module_1", "managed", "type_1"))
+	s.False(contains(fr, "module.test_module_2", "managed", "type_2"))
 }
 
 func get(s []models.Resource, module string, mode string, typ string) models.Resource {

@@ -12,6 +12,7 @@ import (
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/filter"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
+	"github.com/tyler-technologies/go-terraform-state-copy/internal/tfdrerrors"
 )
 
 var httpClient = &http.Client{}
@@ -20,7 +21,10 @@ var httpClient = &http.Client{}
 func CopyTFState(origWorkspaceName string, newWorkspaceName string, filterConfigFileName string) error {
 	oldState, err := pullTFState(origWorkspaceName)
 	if err != nil {
-		return fmt.Errorf("Unable to read origin state. Error: %v", err)
+		return tfdrerrors.ErrReadState{Err: err}
+	}
+	if oldState == nil {
+		return tfdrerrors.ErrSourceIsEmpty{}
 	}
 
 	newResources, err := filter.StateFilter(oldState.Resources, filter.CopyResourceFilterFunc, filterConfigFileName)
@@ -29,19 +33,20 @@ func CopyTFState(origWorkspaceName string, newWorkspaceName string, filterConfig
 	}
 
 	newState, err := pullTFState(newWorkspaceName)
-	if newState.TerraformVersion != "" {
-		return fmt.Errorf("new workspace state is not empty")
+	if newState != nil {
+		return tfdrerrors.ErrDestinationNotEmpty{}
 	}
 
-	newState.TerraformVersion = oldState.TerraformVersion
-	newState.Version = oldState.Version
-
-	newState.Resources = newResources
-	newState.Serial++
+	newState = &models.State{
+		TerraformVersion: oldState.TerraformVersion,
+		Version:          oldState.Version,
+		Resources:        newResources,
+		Serial:           1,
+	}
 
 	err = createTFStateVersion(newState, newWorkspaceName)
 	if err != nil {
-		return fmt.Errorf("Unable to create new state version. Error: %v", err)
+		return tfdrerrors.ErrUnableToCreateStateVersion{Err: err}
 	}
 
 	return nil
@@ -51,12 +56,15 @@ func CopyTFState(origWorkspaceName string, newWorkspaceName string, filterConfig
 func DeleteTFStateResources(workspaceName string, filterConfigFileName string) error {
 	state, err := pullTFState(workspaceName)
 	if err != nil {
-		return fmt.Errorf("Unable to read origin state. Error: %v", err)
+		return tfdrerrors.ErrReadState{Err: err}
+	}
+	if state == nil {
+		return tfdrerrors.ErrSourceIsEmpty{}
 	}
 
 	state.Resources, err = filter.StateFilter(state.Resources, filter.DeleteResourceFilterFunc, filterConfigFileName)
 	if err != nil {
-		return fmt.Errorf("Unable to filter resources from state. Error: %v", err)
+		return tfdrerrors.ErrUnableToFilter{Err: err}
 	}
 	state.Serial++
 
@@ -68,7 +76,7 @@ func DeleteTFStateResources(workspaceName string, filterConfigFileName string) e
 
 }
 
-func createTFStateVersion(state models.State, workspaceName string) error {
+func createTFStateVersion(state *models.State, workspaceName string) error {
 	c := config.GetConfig()
 
 	tfeConfig := &tfe.Config{
@@ -83,14 +91,14 @@ func createTFStateVersion(state models.State, workspaceName string) error {
 
 	workspace, err := client.Workspaces.Read(context.Background(), c.TerraformOrgName, workspaceName)
 	if err != nil {
-		return fmt.Errorf("Unable to get workspace. Err: %v", err)
+		return tfdrerrors.ErrGetWorkspace{Err: err}
 	}
 
 	client.Workspaces.Lock(context.Background(), workspace.ID, tfe.WorkspaceLockOptions{})
 
 	stateBytes, err := json.Marshal(state)
 	if err != nil {
-		return fmt.Errorf("Unable to unmarshal state object. Err: %v", err)
+		return fmt.Errorf("Unable to unmarshal state object. Error: %v", err)
 	}
 
 	versionMd5Bytes := fmt.Sprintf("%x", md5.Sum(stateBytes))
@@ -112,7 +120,7 @@ func createTFStateVersion(state models.State, workspaceName string) error {
 	return nil
 }
 
-func pullTFState(workspaceName string) (models.State, error) {
+func pullTFState(workspaceName string) (*models.State, error) {
 	c := config.GetConfig()
 
 	tfeConfig := &tfe.Config{
@@ -122,33 +130,33 @@ func pullTFState(workspaceName string) (models.State, error) {
 
 	client, err := tfe.NewClient(tfeConfig)
 	if err != nil {
-		return models.State{}, fmt.Errorf("Cannot create tfe client. Err: %v", err)
+		return nil, fmt.Errorf("Cannot create tfe client. Err: %v", err)
 	}
 
 	workspace, err := client.Workspaces.Read(context.Background(), c.TerraformOrgName, workspaceName)
 	if err != nil {
-		return models.State{}, fmt.Errorf("Unable to get workspace. Err: %v", err)
+		return nil, tfdrerrors.ErrGetWorkspace{Err: err}
 	}
 
 	sv, err := client.StateVersions.Current(context.Background(), workspace.ID)
 	if err != nil {
-		if err.Error() == "resource not found" {
-			return models.State{}, nil
+		if err.Error() == tfe.ErrResourceNotFound.Error() {
+			return nil, nil
 		}
-		return models.State{}, fmt.Errorf("Cannot get current state. Err: %v", err)
+		return nil, tfdrerrors.ErrUnableToGetStateVersion{Err: err}
 	}
 
 	s, err := client.StateVersions.Download(context.Background(), sv.DownloadURL)
 	if err != nil {
-		return models.State{}, fmt.Errorf("Cannot download state. Err: %v", err)
+		return nil, tfdrerrors.ErrUnableToDownloadState{Err: err}
 	}
 
 	var state models.State
 
 	err = json.Unmarshal(s, &state)
 	if err != nil {
-		return models.State{}, fmt.Errorf("Cannot unmarshal downloaded state json. Err: : %v", err)
+		return nil, fmt.Errorf("Cannot unmarshal downloaded state json. Err: : %v", err)
 	}
 
-	return state, nil
+	return &state, nil
 }

@@ -17,8 +17,8 @@ publish: clean fetch ## publishes assets
 	  echo "GITHUB_TOKEN is not set";\
 		exit 1;\
 	fi
-	@if [ "$(GIT_BRANCH)" != "master" ]; then\
-	  echo "Current branch is: '$(GIT_BRANCH)'.  Please publish from 'master'";\
+	@if [ "$(GIT_BRANCH)" != "main" ]; then\
+	  echo "Current branch is: '$(GIT_BRANCH)'.  Please publish from 'main'";\
 		exit 1;\
 	fi
 	git tag -a $(VERSION) -m "$(MESSAGE)"

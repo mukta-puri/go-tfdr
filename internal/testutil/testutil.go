@@ -18,8 +18,8 @@ var (
 )
 
 // NewState &
-func NewState() models.State {
-	return models.State{
+func NewState() *models.State {
+	return &models.State{
 		Version:          DefaultVersion,
 		TerraformVersion: DefaultTerraformVersion,
 		Serial:           DefaultSerial,

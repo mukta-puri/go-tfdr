@@ -57,13 +57,9 @@ func (s *TestSuite) SetupSuite() {
 }
 
 func (s *TestSuite) SetupTest() {
-	httpmock.ActivateNonDefault(httpClient)
-	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/ping", httpmock.NewStringResponder(204, ""))
-	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/organizations/team/workspaces/test", newResponder("test", "workspaces", ""))
 }
 
 func (s *TestSuite) TearDownTest() {
-	httpmock.DeactivateAndReset()
 }
 
 func TestRunSuite(t *testing.T) {
@@ -142,7 +138,7 @@ func (s *TestSuite) TestCopyTFState() {
 			filterFile:        "",
 			shouldErr:         true,
 			errValidationFunc: func(err error) bool { return errors.Is(err, tfdrerrors.ErrSourceIsEmpty{}) },
-			errMessage:        "Test copy error when source state not found failed",
+			errMessage:        "Test copy error when source current state not found failed",
 		},
 		{
 			origwks: &tfeTestWks{
@@ -203,6 +199,8 @@ func (s *TestSuite) TestCopyTFState() {
 	}
 
 	for _, c := range cases {
+		httpmock.ActivateNonDefault(httpClient)
+		httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/ping", httpmock.NewStringResponder(204, ""))
 		err := setupWksMockHTTPResponses(c.origwks)
 		s.NoError(err, c.errMessage)
 		err = setupWksMockHTTPResponses(c.newwks)
@@ -218,98 +216,138 @@ func (s *TestSuite) TestCopyTFState() {
 		} else {
 			s.NoError(err, c.errMessage)
 		}
+		httpmock.DeactivateAndReset()
 	}
 }
 
-func (s *TestSuite) TestDeleteTFStateResources() {
-	origState, err := json.Marshal(testutil.NewState())
-	s.NoError(err)
+func (s *TestSuite) TestDeleteTFState() {
+	cases := []struct {
+		wks               *tfeTestWks
+		filterFile        string
+		shouldErr         bool
+		errValidationFunc func(error) bool
+		errMessage        string
+	}{
+		{
+			wks: &tfeTestWks{
+				Name:         "test1",
+				Exists:       true,
+				CurrentState: testutil.NewState(),
+				CsvResponder: newResponder("test", "state-versions", "https://state"),
+				SvPostResponder: func(req *http.Request) (*http.Response, error) {
+					state, err := decodeStateFromBody(req)
+					s.NoError(err)
 
-	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/workspaces/test/current-state-version", newResponder("test", "state-versions", "https://state"))
-	httpmock.RegisterResponder("GET", "https://state", httpmock.NewStringResponder(200, string(origState)))
+					numFilters := 2
 
-	httpmock.RegisterResponder("POST", "https://app.terraform.io/api/v2/workspaces/test/state-versions", func(req *http.Request) (*http.Response, error) {
-		state, err := decodeStateFromBody(req)
-		s.NoError(err)
+					s.Equal(testutil.DefaultTerraformVersion, state.TerraformVersion)
+					s.Equal(testutil.DefaultVersion, state.Version)
+					s.Equal(testutil.DefaultLineage, state.Lineage)
+					s.Equal(testutil.DefaultSerial+1, state.Serial)
+					s.Equal(testutil.DefaultNumResources()-numFilters-len(config.GlobalResources), len(state.Resources))
 
-		numFilters := 2
+					resp, err := newJSONResponse("test", "state-versions", "https://state")
+					s.NoError(err)
 
-		s.Equal(testutil.DefaultTerraformVersion, state.TerraformVersion)
-		s.Equal(testutil.DefaultVersion, state.Version)
-		s.Equal(testutil.DefaultLineage, state.Lineage)
-		s.Equal(testutil.DefaultSerial+1, state.Serial)
-		s.Equal(testutil.DefaultNumResources()-numFilters-len(config.GlobalResources), len(state.Resources))
+					return resp, nil
+				},
+			},
+			filterFile: "./testdata/filterConfig.json",
+			shouldErr:  false,
+			errMessage: "Test succesful delete state resources failed",
+		},
+		{
+			wks: &tfeTestWks{
+				Name:         "test1",
+				Exists:       true,
+				CsvResponder: httpmock.NewStringResponder(404, ""),
+			},
+			filterFile:        "",
+			shouldErr:         true,
+			errValidationFunc: func(err error) bool { return errors.Is(err, tfdrerrors.ErrSourceIsEmpty{}) },
+			errMessage:        "Test delete error when source current state not found failed",
+		},
+		{
+			wks: &tfeTestWks{
+				Name:   "testNoWorkspace",
+				Exists: false,
+			},
+			filterFile: "",
+			shouldErr:  true,
+			errValidationFunc: func(err error) bool {
+				return errors.Is(err, tfdrerrors.ErrReadState{
+					Err: tfdrerrors.ErrGetWorkspace{Err: tfe.ErrResourceNotFound},
+				})
+			},
+			errMessage: "Test delete error when source workspace not found failed",
+		},
+		{
+			wks: &tfeTestWks{
+				Name:         "test1",
+				Exists:       true,
+				CurrentState: testutil.NewState(),
+				CsvResponder: newResponder("test", "state-versions", "https://state"),
+			},
+			filterFile: "./testdata/not-found-filter.json",
+			shouldErr:  true,
+			errValidationFunc: func(err error) bool {
+				return strings.Contains(err.Error(), "Unable to filter resources from state. Error:")
+			},
+			errMessage: "Test delete error when invalid filter file failed",
+		},
+		{
+			wks: &tfeTestWks{
+				Name:         "test1",
+				Exists:       true,
+				CurrentState: testutil.NewState(),
+				CsvResponder: newResponder("test", "state-versions", "https://state"),
+				// SvPostResponder: httpmock.NewErrorResponder(errors.New("Error creating state")),
+			},
+			filterFile: "./testdata/filterConfig.json",
+			shouldErr:  true,
+			errValidationFunc: func(err error) bool {
+				return strings.Contains(err.Error(), "Unable to create new state version. Error:")
+			},
+			errMessage: "Test delete error when state create error failed",
+		},
+	}
 
-		resp, err := newJSONResponse("test", "state-versions", "https://state")
-		s.NoError(err)
+	for _, c := range cases {
+		httpmock.ActivateNonDefault(httpClient)
+		httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/ping", httpmock.NewStringResponder(204, ""))
+		err := setupWksMockHTTPResponses(c.wks)
+		s.NoError(err, c.errMessage)
 
-		return resp, nil
-	})
+		err = DeleteTFStateResources(c.wks.Name, c.filterFile)
 
-	err = DeleteTFStateResources("test", "./testdata/filterConfig.json")
-	s.NoError(err)
-}
-
-func (s *TestSuite) TestDeleteTFStateSorceIsEmpty() {
-	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/workspaces/test/current-state-version", httpmock.NewStringResponder(404, ""))
-
-	err := DeleteTFStateResources("test", "./testdata/filterConfig.json")
-
-	s.Error(err)
-	s.True(errors.Is(err, tfdrerrors.ErrSourceIsEmpty{}))
-}
-
-func (s *TestSuite) TestDeleteTFStateSorceWorkspaceNotFound() {
-	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/organizations/team/workspaces/testNoWorkspace", httpmock.NewStringResponder(404, ""))
-
-	err := DeleteTFStateResources("testNoWorkspace", "./testdata/filterConfig.json")
-
-	s.Error(err)
-	s.True(errors.Is(err, tfdrerrors.ErrReadState{
-		Err: tfdrerrors.ErrGetWorkspace{Err: tfe.ErrResourceNotFound},
-	}))
-}
-
-func (s *TestSuite) TestDeleteTFStateInvalidFilterFile() {
-	origState, err := json.Marshal(testutil.NewState())
-	s.NoError(err)
-
-	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/workspaces/test/current-state-version", newResponder("test", "state-versions", "https://state"))
-	httpmock.RegisterResponder("GET", "https://state", httpmock.NewStringResponder(200, string(origState)))
-
-	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/organizations/team/workspaces/test2", newResponder("test2", "workspaces", ""))
-	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/workspaces/test2/current-state-version", httpmock.NewStringResponder(404, ""))
-
-	err = DeleteTFStateResources("test", "./testdata/not-exist.json")
-	s.Error(err)
-	s.True(strings.Contains(err.Error(), "Unable to filter resources from state. Error:"))
-}
-
-func (s *TestSuite) TestDeleteTFStateCreateError() {
-	origState, err := json.Marshal(testutil.NewState())
-	s.NoError(err)
-
-	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/workspaces/test/current-state-version", newResponder("test", "state-versions", "https://state"))
-	httpmock.RegisterResponder("GET", "https://state", httpmock.NewStringResponder(200, string(origState)))
-
-	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/organizations/team/workspaces/test2", newResponder("test2", "workspaces", ""))
-	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/workspaces/test2/current-state-version", httpmock.NewStringResponder(404, ""))
-	httpmock.RegisterResponder("POST", "https://app.terraform.io/api/v2/workspaces/test2/state-versions", httpmock.NewErrorResponder(errors.New("Error creating state")))
-
-	err = DeleteTFStateResources("test", "./testdata/filterConfig.json")
-	s.Error(err)
-	s.True(strings.Contains(err.Error(), "Unable to create new state version. Error:"))
+		if c.shouldErr {
+			s.Error(err, c.errMessage)
+			if c.errValidationFunc != nil && err != nil {
+				s.True(c.errValidationFunc(err), fmt.Sprintf("%v. Invalid error returned: %v", c.errMessage, err))
+			}
+		} else {
+			s.NoError(err, c.errMessage)
+		}
+		httpmock.DeactivateAndReset()
+	}
 }
 
 func (s *TestSuite) TestCreateTFStateVersion() {
+	httpmock.ActivateNonDefault(httpClient)
+	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/ping", httpmock.NewStringResponder(204, ""))
+	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/organizations/team/workspaces/test", newResponder("test", "workspaces", ""))
 	state := testutil.NewState()
 	httpmock.RegisterResponder("POST", "https://app.terraform.io/api/v2/workspaces/test/state-versions", newResponder("test", "state-versions", "https://state"))
 
 	err := createTFStateVersion(state, "test")
 	s.NoError(err)
+	httpmock.DeactivateAndReset()
 }
 
 func (s *TestSuite) TestCreateTFStateVersionNoWorkspace() {
+	httpmock.ActivateNonDefault(httpClient)
+	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/ping", httpmock.NewStringResponder(204, ""))
+	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/organizations/team/workspaces/test", newResponder("test", "workspaces", ""))
 	state := testutil.NewState()
 	httpmock.RegisterResponder("POST", "https://app.terraform.io/api/v2/workspaces/test/state-versions", newResponder("test", "state-versions", "https://state"))
 	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/organizations/team/workspaces/not-found", httpmock.NewStringResponder(404, ""))
@@ -319,9 +357,13 @@ func (s *TestSuite) TestCreateTFStateVersionNoWorkspace() {
 	s.True(errors.Is(err, tfdrerrors.ErrGetWorkspace{
 		Err: tfe.ErrResourceNotFound,
 	}))
+	httpmock.DeactivateAndReset()
 }
 
 func (s *TestSuite) TestPullTFState() {
+	httpmock.ActivateNonDefault(httpClient)
+	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/ping", httpmock.NewStringResponder(204, ""))
+	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/organizations/team/workspaces/test", newResponder("test", "workspaces", ""))
 	currentState, err := json.Marshal(testutil.NewState())
 	s.NoError(err)
 
@@ -331,31 +373,44 @@ func (s *TestSuite) TestPullTFState() {
 	s.NoError(err)
 	s.NotNil(st)
 	s.Equal(testutil.DefaultNumResources(), len(st.Resources))
+	httpmock.DeactivateAndReset()
 }
 
 func (s *TestSuite) TestPullTFStateNoState() {
+	httpmock.ActivateNonDefault(httpClient)
+	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/ping", httpmock.NewStringResponder(204, ""))
+	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/organizations/team/workspaces/test", newResponder("test", "workspaces", ""))
 	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/workspaces/test/current-state-version", httpmock.NewStringResponder(404, ""))
 	st, err := pullTFState("test")
 	s.NoError(err)
 	s.Nil(st)
+	httpmock.DeactivateAndReset()
 }
 
 func (s *TestSuite) TestPullTFStateErrGetCurrentState() {
+	httpmock.ActivateNonDefault(httpClient)
+	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/ping", httpmock.NewStringResponder(204, ""))
+	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/organizations/team/workspaces/test", newResponder("test", "workspaces", ""))
 	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/workspaces/test/current-state-version", httpmock.NewErrorResponder(errors.New("Error getting current state version")))
 
 	st, err := pullTFState("test")
 	s.Error(err)
 	s.True(strings.Contains(err.Error(), "Cannot get current state. Error:"))
 	s.Nil(st)
+	httpmock.DeactivateAndReset()
 }
 
 func (s *TestSuite) TestPullTFStateErrDownloadState() {
+	httpmock.ActivateNonDefault(httpClient)
+	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/ping", httpmock.NewStringResponder(204, ""))
+	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/organizations/team/workspaces/test", newResponder("test", "workspaces", ""))
 	httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/workspaces/test/current-state-version", newResponder("test", "state-versions", "https://state"))
 	httpmock.RegisterResponder("GET", "https://state", httpmock.NewErrorResponder(errors.New("Error downloading state")))
 	st, err := pullTFState("test")
 	s.Error(err)
 	s.True(strings.Contains(err.Error(), "Cannot download state. Error:"))
 	s.Nil(st)
+	httpmock.DeactivateAndReset()
 }
 
 func setupWksMockHTTPResponses(wks *tfeTestWks) error {

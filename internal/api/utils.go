@@ -10,71 +10,11 @@ import (
 
 	"github.com/hashicorp/go-tfe"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/filter"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/tfdrerrors"
 )
 
 var httpClient = &http.Client{}
-
-// CopyTFState &
-func CopyTFState(origWorkspaceName string, newWorkspaceName string, filterConfigFileName string) error {
-	oldState, err := pullTFState(origWorkspaceName)
-	if err != nil {
-		return tfdrerrors.ErrReadState{Err: err}
-	}
-	if oldState == nil {
-		return tfdrerrors.ErrSourceIsEmpty{}
-	}
-
-	newResources, err := filter.StateFilter(oldState.Resources, filter.CopyResourceFilterFunc, filterConfigFileName)
-	if err != nil {
-		return fmt.Errorf("Unable to filter resources from state. Error: %v", err)
-	}
-
-	newState, err := pullTFState(newWorkspaceName)
-	if newState != nil {
-		return tfdrerrors.ErrDestinationNotEmpty{}
-	}
-
-	newState = &models.State{
-		TerraformVersion: oldState.TerraformVersion,
-		Version:          oldState.Version,
-		Resources:        newResources,
-		Serial:           1,
-	}
-
-	err = createTFStateVersion(newState, newWorkspaceName)
-	if err != nil {
-		return tfdrerrors.ErrUnableToCreateStateVersion{Err: err}
-	}
-
-	return nil
-}
-
-// DeleteTFStateResources &
-func DeleteTFStateResources(workspaceName string, filterConfigFileName string) error {
-	state, err := pullTFState(workspaceName)
-	if err != nil {
-		return tfdrerrors.ErrReadState{Err: err}
-	}
-	if state == nil {
-		return tfdrerrors.ErrSourceIsEmpty{}
-	}
-
-	state.Resources, err = filter.StateFilter(state.Resources, filter.DeleteResourceFilterFunc, filterConfigFileName)
-	if err != nil {
-		return tfdrerrors.ErrUnableToFilter{Err: err}
-	}
-	state.Serial++
-
-	err = createTFStateVersion(state, workspaceName)
-	if err != nil {
-		return fmt.Errorf("Unable to create new state version. Error: %v", err)
-	}
-	return nil
-
-}
 
 func createTFStateVersion(state *models.State, workspaceName string) error {
 	c := config.GetConfig()

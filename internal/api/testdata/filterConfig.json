@@ -1,0 +1,27 @@
+{
+    "filters": [
+        {
+            "filter_properties": {
+                "module": "module.test_module_1",
+                "type": "type_1",
+                "name": "orig_name_1"
+            },
+            "new_properties": {
+                "name": "new_name_1"
+            }
+        },
+        {
+            "filter_properties": {
+                "module": "module.test_module_2",
+                "type": "type_2",
+                "name": "orig_name_2"
+            },
+            "new_properties": {
+                "attributes": {
+                    "attr1": "new_value_2",
+                    "attr2": ""
+                }
+            }
+        }
+    ]
+}

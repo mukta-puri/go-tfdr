@@ -2,10 +2,6 @@
 
 Generate markdown documentation
 
-### Synopsis
-
-Generate markdown documentation
-
 ```
 tfdr doc [flags]
 ```

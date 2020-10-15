@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/testutil"
+	"github.com/tyler-technologies/go-terraform-state-copy/internal/testutils"
 )
 
 type TestSuite struct {
@@ -31,7 +31,7 @@ func (s *TestSuite) TestReadFiltersFromFileError() {
 }
 
 func (s *TestSuite) TestReadStateFilterError() {
-	var res = testutil.NewStateResources()
+	var res = testutils.NewStateResources()
 
 	fr, err := StateFilter(res, CopyResourceFilterFunc, "./testdata/not-found.json")
 	s.Error(err)
@@ -39,7 +39,7 @@ func (s *TestSuite) TestReadStateFilterError() {
 }
 
 func (s *TestSuite) TestCopyStateFilter() {
-	var res = testutil.NewStateResources()
+	var res = testutils.NewStateResources()
 	numFilters := 2
 
 	fr, err := StateFilter(res, CopyResourceFilterFunc, "./testdata/filterConfig.json")
@@ -54,7 +54,7 @@ func (s *TestSuite) TestCopyStateFilter() {
 }
 
 func (s *TestSuite) TestDeleteStateFilter() {
-	var res = testutil.NewStateResources()
+	var res = testutils.NewStateResources()
 	numFilters := 2
 
 	fr, err := StateFilter(res, DeleteResourceFilterFunc, "./testdata/filterConfig.json")

@@ -8,7 +8,7 @@ import (
 	"log"
 	"strings"
 
-	vpr "github.com/ory/viper"
+	vpr "github.com/spf13/viper"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/config/file"
 	"gopkg.in/yaml.v2"
 )

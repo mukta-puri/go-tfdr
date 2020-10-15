@@ -14,7 +14,7 @@ var getConfigCmd = &cobra.Command{
 	Long:  `Display currently configured options`,
 	Run: func(cmd *cobra.Command, args []string) {
 		bytes, _ := yaml.Marshal(config.GetConfig())
-		fmt.Print(string(bytes))
+		fmt.Println(string(bytes))
 	},
 }
 

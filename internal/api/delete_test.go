@@ -6,60 +6,62 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"testing"
 
 	"github.com/hashicorp/go-tfe"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/suite"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/logging"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/testutil"
+	"github.com/tyler-technologies/go-terraform-state-copy/internal/testutils"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/tfdrerrors"
 )
 
-type DeleteTestSuite struct {
+type DeleteSuite struct {
 	suite.Suite
 }
 
-func (s *DeleteTestSuite) SetupSuite() {
+func (s *DeleteSuite) SetupSuite() {}
+
+func (s *DeleteSuite) SetupTest() {
 	os.Setenv("TF_TEAM_TOKEN", "test")
 	os.Setenv("TF_ORG_NAME", "team")
 	config.InitConfig("")
 	logging.InitLogger()
 }
 
-func (s *DeleteTestSuite) SetupTest() {
+func (s *DeleteSuite) TearDownTest() {
+	os.Unsetenv("TF_TEAM_TOKEN")
+	os.Unsetenv("TF_ORG_NAME")
 }
 
-func (s *DeleteTestSuite) TearDownTest() {
-}
-
-func (s *DeleteTestSuite) TestDeleteTFState() {
+func (s *DeleteSuite) TestDeleteTFState() {
 	cases := []struct {
-		wks               *tfeTestWks
+		wks               *testutils.TfeTestWks
 		filterFile        string
 		shouldErr         bool
 		errValidationFunc func(error) bool
 		errMessage        string
 	}{
 		{
-			wks: &tfeTestWks{
+			wks: &testutils.TfeTestWks{
 				Name:         "test1",
 				Exists:       true,
-				CurrentState: testutil.NewState(),
-				CsvResponder: newResponder("test", "state-versions", "https://state"),
+				CurrentState: testutils.NewState(),
+				CsvResponder: testutils.NewResponder("test", "state-versions", "https://state"),
 				SvPostResponder: func(req *http.Request) (*http.Response, error) {
-					state, err := decodeStateFromBody(req)
+					state, err := testutils.DecodeStateFromBody(req)
 					s.NoError(err)
 
 					numFilters := 2
 
-					s.Equal(testutil.DefaultTerraformVersion, state.TerraformVersion)
-					s.Equal(testutil.DefaultVersion, state.Version)
-					s.Equal(testutil.DefaultLineage, state.Lineage)
-					s.Equal(testutil.DefaultSerial+1, state.Serial)
-					s.Equal(testutil.DefaultNumResources()-numFilters-len(config.GlobalResources), len(state.Resources))
+					s.Equal(testutils.DefaultTerraformVersion, state.TerraformVersion)
+					s.Equal(testutils.DefaultVersion, state.Version)
+					s.Equal(testutils.DefaultLineage, state.Lineage)
+					s.Equal(testutils.DefaultSerial+1, state.Serial)
+					s.Equal(testutils.DefaultNumResources()-numFilters-len(config.GlobalResources), len(state.Resources))
 
-					resp, err := newJSONResponse("test", "state-versions", "https://state")
+					resp, err := testutils.NewJSONResponse("test", "state-versions", "https://state")
 					s.NoError(err)
 
 					return resp, nil
@@ -70,7 +72,7 @@ func (s *DeleteTestSuite) TestDeleteTFState() {
 			errMessage: "Test succesful delete state resources failed",
 		},
 		{
-			wks: &tfeTestWks{
+			wks: &testutils.TfeTestWks{
 				Name:         "test1",
 				Exists:       true,
 				CsvResponder: httpmock.NewStringResponder(404, ""),
@@ -81,7 +83,7 @@ func (s *DeleteTestSuite) TestDeleteTFState() {
 			errMessage:        "Test delete error when source current state not found failed",
 		},
 		{
-			wks: &tfeTestWks{
+			wks: &testutils.TfeTestWks{
 				Name:   "testNoWorkspace",
 				Exists: false,
 			},
@@ -95,11 +97,11 @@ func (s *DeleteTestSuite) TestDeleteTFState() {
 			errMessage: "Test delete error when source workspace not found failed",
 		},
 		{
-			wks: &tfeTestWks{
+			wks: &testutils.TfeTestWks{
 				Name:         "test1",
 				Exists:       true,
-				CurrentState: testutil.NewState(),
-				CsvResponder: newResponder("test", "state-versions", "https://state"),
+				CurrentState: testutils.NewState(),
+				CsvResponder: testutils.NewResponder("test", "state-versions", "https://state"),
 			},
 			filterFile: "./testdata/not-found-filter.json",
 			shouldErr:  true,
@@ -109,11 +111,11 @@ func (s *DeleteTestSuite) TestDeleteTFState() {
 			errMessage: "Test delete error when invalid filter file failed",
 		},
 		{
-			wks: &tfeTestWks{
+			wks: &testutils.TfeTestWks{
 				Name:         "test1",
 				Exists:       true,
-				CurrentState: testutil.NewState(),
-				CsvResponder: newResponder("test", "state-versions", "https://state"),
+				CurrentState: testutils.NewState(),
+				CsvResponder: testutils.NewResponder("test", "state-versions", "https://state"),
 				// SvPostResponder: httpmock.NewErrorResponder(errors.New("Error creating state")),
 			},
 			filterFile: "./testdata/filterConfig.json",
@@ -128,7 +130,7 @@ func (s *DeleteTestSuite) TestDeleteTFState() {
 	for _, c := range cases {
 		httpmock.ActivateNonDefault(httpClient)
 		httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/ping", httpmock.NewStringResponder(204, ""))
-		err := setupWksMockHTTPResponses(c.wks)
+		err := testutils.SetupWksMockHTTPResponses(c.wks)
 		s.NoError(err, c.errMessage)
 
 		err = DeleteTFStateResources(c.wks.Name, c.filterFile)
@@ -143,4 +145,8 @@ func (s *DeleteTestSuite) TestDeleteTFState() {
 		}
 		httpmock.DeactivateAndReset()
 	}
+}
+
+func TestDeleteSuite(t *testing.T) {
+	suite.Run(t, new(DeleteSuite))
 }

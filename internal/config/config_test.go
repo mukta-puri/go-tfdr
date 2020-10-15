@@ -11,8 +11,8 @@ import (
 	"sync"
 	"testing"
 
-	vpr "github.com/ory/viper"
 	"github.com/sirupsen/logrus"
+	vpr "github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 )
 

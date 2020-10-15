@@ -6,65 +6,69 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"testing"
 
 	"github.com/hashicorp/go-tfe"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/suite"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/logging"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/testutil"
+	"github.com/tyler-technologies/go-terraform-state-copy/internal/testutils"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/tfdrerrors"
 )
 
-type CopyTestSuite struct {
+type CopySuite struct {
 	suite.Suite
 }
 
-func (s *CopyTestSuite) SetupSuite() {
+func (s *CopySuite) SetupSuite() {}
+
+func (s *CopySuite) SetupTest() {
 	os.Setenv("TF_TEAM_TOKEN", "test")
 	os.Setenv("TF_ORG_NAME", "team")
 	config.InitConfig("")
 	logging.InitLogger()
 }
 
-func (s *CopyTestSuite) SetupTest() {}
+func (s *CopySuite) TearDownTest() {
+	os.Unsetenv("TF_TEAM_TOKEN")
+	os.Unsetenv("TF_ORG_NAME")
+}
 
-func (s *CopyTestSuite) TearDownTest() {}
-
-func (s *CopyTestSuite) TestCopyTFState() {
+func (s *CopySuite) TestCopyTFState() {
 	cases := []struct {
-		origwks           *tfeTestWks
-		newwks            *tfeTestWks
+		origwks           *testutils.TfeTestWks
+		newwks            *testutils.TfeTestWks
 		filterFile        string
 		shouldErr         bool
 		errValidationFunc func(error) bool
 		errMessage        string
 	}{
 		{
-			origwks: &tfeTestWks{
+			origwks: &testutils.TfeTestWks{
 				Name:         "test1",
 				Exists:       true,
-				CurrentState: testutil.NewState(),
-				CsvResponder: newResponder("test", "state-versions", "https://state"),
+				CurrentState: testutils.NewState(),
+				CsvResponder: testutils.NewResponder("test", "state-versions", "https://state"),
 			},
-			newwks: &tfeTestWks{
+			newwks: &testutils.TfeTestWks{
 				Name:         "test2",
 				Exists:       true,
 				CurrentState: nil,
 				CsvResponder: httpmock.NewStringResponder(404, ""),
 				SvPostResponder: func(req *http.Request) (*http.Response, error) {
-					state, err := decodeStateFromBody(req)
+					state, err := testutils.DecodeStateFromBody(req)
 					s.NoError(err)
 
 					numFilters := 2
 
-					s.Equal(testutil.DefaultTerraformVersion, state.TerraformVersion)
-					s.Equal(testutil.DefaultVersion, state.Version)
+					s.Equal(testutils.DefaultTerraformVersion, state.TerraformVersion)
+					s.Equal(testutils.DefaultVersion, state.Version)
 					s.Equal("", state.Lineage)
 					s.Equal(int64(1), state.Serial)
 					s.Equal(numFilters+len(config.GlobalResources), len(state.Resources))
 
-					resp, err := newJSONResponse("test2", "state-versions", "https://state")
+					resp, err := testutils.NewJSONResponse("test2", "state-versions", "https://state")
 					s.NoError(err)
 
 					return resp, nil
@@ -75,16 +79,16 @@ func (s *CopyTestSuite) TestCopyTFState() {
 			errMessage: "Test succesful copy state failed",
 		},
 		{
-			origwks: &tfeTestWks{
+			origwks: &testutils.TfeTestWks{
 				Name:         "test1",
 				Exists:       true,
-				CurrentState: testutil.NewState(),
-				CsvResponder: newResponder("test", "state-versions", "https://state"),
+				CurrentState: testutils.NewState(),
+				CsvResponder: testutils.NewResponder("test", "state-versions", "https://state"),
 			},
-			newwks: &tfeTestWks{
+			newwks: &testutils.TfeTestWks{
 				Name:         "test2",
 				Exists:       true,
-				CsvResponder: newResponder("test2", "state-versions", "https://state"),
+				CsvResponder: testutils.NewResponder("test2", "state-versions", "https://state"),
 			},
 			filterFile:        "./testdata/filterConfig.json",
 			shouldErr:         true,
@@ -92,12 +96,12 @@ func (s *CopyTestSuite) TestCopyTFState() {
 			errMessage:        "Test copy error when non empty destination state failed",
 		},
 		{
-			origwks: &tfeTestWks{
+			origwks: &testutils.TfeTestWks{
 				Name:         "test1",
 				Exists:       true,
 				CsvResponder: httpmock.NewStringResponder(404, ""),
 			},
-			newwks: &tfeTestWks{
+			newwks: &testutils.TfeTestWks{
 				Name: "test2",
 			},
 			filterFile:        "",
@@ -106,11 +110,11 @@ func (s *CopyTestSuite) TestCopyTFState() {
 			errMessage:        "Test copy error when source current state not found failed",
 		},
 		{
-			origwks: &tfeTestWks{
+			origwks: &testutils.TfeTestWks{
 				Name:   "testNoWorkspace",
 				Exists: false,
 			},
-			newwks: &tfeTestWks{
+			newwks: &testutils.TfeTestWks{
 				Name: "test2",
 			},
 			filterFile: "",
@@ -123,13 +127,13 @@ func (s *CopyTestSuite) TestCopyTFState() {
 			errMessage: "Test copy error when source workspace not found failed",
 		},
 		{
-			origwks: &tfeTestWks{
+			origwks: &testutils.TfeTestWks{
 				Name:         "test1",
 				Exists:       true,
-				CurrentState: testutil.NewState(),
-				CsvResponder: newResponder("test", "state-versions", "https://state"),
+				CurrentState: testutils.NewState(),
+				CsvResponder: testutils.NewResponder("test", "state-versions", "https://state"),
 			},
-			newwks: &tfeTestWks{
+			newwks: &testutils.TfeTestWks{
 				Name:         "test2",
 				Exists:       true,
 				CsvResponder: httpmock.NewStringResponder(404, ""),
@@ -142,13 +146,13 @@ func (s *CopyTestSuite) TestCopyTFState() {
 			errMessage: "Test copy error when invalid filter file failed",
 		},
 		{
-			origwks: &tfeTestWks{
+			origwks: &testutils.TfeTestWks{
 				Name:         "test1",
 				Exists:       true,
-				CurrentState: testutil.NewState(),
-				CsvResponder: newResponder("test", "state-versions", "https://state"),
+				CurrentState: testutils.NewState(),
+				CsvResponder: testutils.NewResponder("test", "state-versions", "https://state"),
 			},
-			newwks: &tfeTestWks{
+			newwks: &testutils.TfeTestWks{
 				Name:            "test2",
 				Exists:          true,
 				CsvResponder:    httpmock.NewStringResponder(404, ""),
@@ -166,9 +170,9 @@ func (s *CopyTestSuite) TestCopyTFState() {
 	for _, c := range cases {
 		httpmock.ActivateNonDefault(httpClient)
 		httpmock.RegisterResponder("GET", "https://app.terraform.io/api/v2/ping", httpmock.NewStringResponder(204, ""))
-		err := setupWksMockHTTPResponses(c.origwks)
+		err := testutils.SetupWksMockHTTPResponses(c.origwks)
 		s.NoError(err, c.errMessage)
-		err = setupWksMockHTTPResponses(c.newwks)
+		err = testutils.SetupWksMockHTTPResponses(c.newwks)
 		s.NoError(err, c.errMessage)
 
 		err = CopyTFState(c.origwks.Name, c.newwks.Name, c.filterFile)
@@ -183,4 +187,8 @@ func (s *CopyTestSuite) TestCopyTFState() {
 		}
 		httpmock.DeactivateAndReset()
 	}
+}
+
+func TestCopySuite(t *testing.T) {
+	suite.Run(t, new(CopySuite))
 }

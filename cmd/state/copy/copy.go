@@ -21,20 +21,20 @@ var CopyStateCmd = &cobra.Command{
 			return errors.New("filterConfigFile file is required")
 		}
 		if len(originalWorkspaceName) == 0 {
-			return errors.New("originalWorkspaceName file is required")
+			return errors.New("originalWorkspaceName is required")
 		}
 		if len(newWorkspaceName) == 0 {
-			return errors.New("newWorkspaceName file is required")
+			return errors.New("newWorkspaceName is required")
 		}
 		return config.ValidateConfig()
 	},
-	Run: func(cmd *cobra.Command, args []string) {
-		api.CopyTFState(originalWorkspaceName, newWorkspaceName, filterConfigFile)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return api.CopyTFState(originalWorkspaceName, newWorkspaceName, filterConfigFile)
 	},
 }
 
 func init() {
 	CopyStateCmd.PersistentFlags().StringVarP(&originalWorkspaceName, "originalWorkspaceName", "o", "", "workspace to copy state from")
-	CopyStateCmd.PersistentFlags().StringVarP(&originalWorkspaceName, "newWorkspaceName", "n", "", "workspace to copy state to")
+	CopyStateCmd.PersistentFlags().StringVarP(&newWorkspaceName, "newWorkspaceName", "n", "", "workspace to copy state to")
 	CopyStateCmd.PersistentFlags().StringVarP(&filterConfigFile, "filterConfigFile", "f", "", "file with filter config with resources to copy")
 }

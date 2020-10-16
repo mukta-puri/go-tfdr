@@ -24,6 +24,9 @@ func CopyTFState(origWorkspaceName string, newWorkspaceName string, filterConfig
 	}
 
 	newState, err := pullTFState(newWorkspaceName)
+	if err != nil {
+		return tfdrerrors.ErrReadState{Err: err}
+	}
 	if newState != nil {
 		return tfdrerrors.ErrDestinationNotEmpty{}
 	}

@@ -7,8 +7,6 @@
                 "name": "backup"
             },
             "new": {
-                "module": "module.tftest8.module.banner_s3_bucket",
-                "type": "aws_s3_bucket",
                 "name": "s3_bucket"
             }
         },
@@ -19,8 +17,6 @@
                 "name": "backup"
             },
             "new": {
-                "module": "module.tftest8.module.cloudplatformauditing-bucket",
-                "type": "aws_s3_bucket",
                 "name": "s3_bucket"
             }
         },
@@ -31,8 +27,6 @@
                 "name": "s3_bucket"
             },
             "new": {
-                "module": "module.tftest8.module.banner_s3_bucket",
-                "type": "aws_s3_bucket",
                 "name": "backup"
             }
         },
@@ -43,8 +37,6 @@
                 "name": "s3_bucket"
             },
             "new": {
-                "module": "module.tftest8.module.cloudplatformauditing-bucket",
-                "type": "aws_s3_bucket",
                 "name": "backup"
             }
         },
@@ -55,9 +47,6 @@
                 "name": "this"
             },
             "new": {
-                "module": "module.tftest8.module.dynamo.module.dynamo_account_link",
-                "type": "aws_dynamodb_table",
-                "name": "this",
                 "attributes": {
                     "arn": "arn:aws:dynamodb:us-east-1:740289861468:table/accountlink-tftest8",
                     "stream_arn": "",
@@ -72,9 +61,6 @@
                 "name": "this"
             },
             "new": {
-                "module": "module.tftest8.module.dynamo.module.dynamo_config_service",
-                "type": "aws_dynamodb_table",
-                "name": "this",
                 "attributes": {
                     "arn": "arn:aws:dynamodb:us-east-1:740289861468:table/config-tftest8",
                     "stream_arn": "",
@@ -89,9 +75,6 @@
                 "name": "this"
             },
             "new": {
-                "module": "module.tftest8.module.dynamo.module.dynamo_messaging_preferences",
-                "type": "aws_dynamodb_table",
-                "name": "this",
                 "attributes": {
                     "arn": "arn:aws:dynamodb:us-east-1:740289861468:table/messaging-tftest8",
                     "stream_arn": "",

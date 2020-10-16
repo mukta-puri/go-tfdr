@@ -71,3 +71,4 @@ dist
 .secrets
 tfdr
 test.yaml
+test.json

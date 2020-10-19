@@ -136,7 +136,7 @@ func (s *TestSuite) TestCreate() {
 	})
 	cfgFile := path.Join(dir, ".tfdr/config.yaml")
 	s.FileExists(cfgFile)
-	s.Contains(out, "\nSuccessfully configured terraform disaster recovery script. Use `tfdr config get` to view your configuration.")
+	s.Contains(out, "\nSuccessfully configured terraform disaster recovery cli. Use `tfdr config get` to view your configuration.")
 }
 
 func readStdOut(f func()) string {

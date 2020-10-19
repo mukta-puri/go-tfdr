@@ -23,24 +23,46 @@ region.
 
 ## Example Disaster Recovery Steps
 Here is an exmple of how this cli could be used in a disaster recovery scenario.
-The following steps assumes there is already a terraform cloud workspace (test1) with a terraform 
-template for setting up infrastructure 
+The following steps assumes there is already a terraform cloud workspace (`test1`) with a 
+terraform template for setting up infrastructure 
 
 ### Steps
-1. Create a new terraform workspace (test2) for the disaster recovery infrastructure
-2. Create a json file (filters.json) with the list of resources whose state we need to copy over from one 
-   workspace to another.
+1. Create a new terraform workspace (`test2`) for the disaster recovery infrastructure
+2. Create a json file (`filters.json`) with the list of resources whose state we need to copy 
+   over from one workspace to another.
 3. Run the following command to copy state from the original workspace to the new 
    workspace
-   `tfdr state copy -f filters.json -o test1 -n test2`
+
+   ```
+   tfdr state copy -f filters.json -o test1 -n test2
+   ```
 
 ## Example filters.json file
-`filter_properties` contains information about the resource whose state we want to copy.
-`new_properties` can contain any properties in the state we would like to replace for that resource. 
-Currently the cli allows updating the name of the copied over resource or any instance attributes in the state 
-of the copied over resource.
+- `global_resource_types` contains any resource types you would like to be moved to the new 
+  workspace regardless of resource or module name. In the example below, this list was populated
+  with global AWS resources. While copying infrastructure from one AWS region to another, global 
+  AWS resources that do not have any region should not be re-created. This property allows us to 
+  copy the state of those global AWS resources when setting up a disaster recovery infrastructure.
+- `filters` contains a list of specific resources in the terrafrom template to copy state of.
+  - `filter_properties` contains information about the resource whose state we want to copy.
+  - `new_properties` can contain any properties in the state we would like to replace for that resource. 
+    Currently the cli allows updating the name of the copied over resource or any instance attributes 
+    in the state of the copied over resource.
 ```
 {
+    "global_resource_types": [
+        "aws_cloudfront_distribution",
+        "aws_cloudfront_origin_access_identity",
+        "aws_iam_access_key",
+        "aws_iam_policy_document",
+        "aws_iam_policy",
+        "aws_iam_role_policy_attachment",
+        "aws_iam_role_policy",
+        "aws_iam_role",
+        "aws_iam_user_policy",
+        "aws_iam_user",
+        "aws_route53_record"
+    ],
     "filters": [
         {
             "filter_properties": {
@@ -83,5 +105,3 @@ of the copied over resource.
     ]
 }
 ```
-
-

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/testutils"
 )
@@ -45,7 +44,7 @@ func (s *TestSuite) TestCopyStateFilter() {
 	fr, err := StateFilter(res, CopyResourceFilterFunc, "./testdata/filterConfig.json")
 	s.NoError(err)
 	s.NotNil(fr)
-	s.Equal(numFilters+len(config.GlobalResources), len(fr))
+	s.Equal(numFilters+len(testutils.GlobalResources), len(fr))
 	s.True(contains(fr, "module.test_module_1", "managed", "type_1"))
 	s.True(contains(fr, "module.test_module_2", "managed", "type_2"))
 	s.Equal("new_name_1", get(fr, "module.test_module_1", "managed", "type_1").Name)
@@ -60,7 +59,7 @@ func (s *TestSuite) TestDeleteStateFilter() {
 	fr, err := StateFilter(res, DeleteResourceFilterFunc, "./testdata/filterConfig.json")
 	s.NoError(err)
 	s.NotNil(fr)
-	s.Equal(len(res)-len(config.GlobalResources)-numFilters, len(fr))
+	s.Equal(len(res)-len(testutils.GlobalResources)-numFilters, len(fr))
 	s.False(contains(fr, "module.test_module_1", "managed", "type_1"))
 	s.False(contains(fr, "module.test_module_2", "managed", "type_2"))
 }

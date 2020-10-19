@@ -29,13 +29,19 @@ terraform template for setting up infrastructure
 ### Steps
 1. Create a new terraform workspace (`test2`) for the disaster recovery infrastructure
 2. Create a json file (`filters.json`) with the list of resources whose state we need to copy 
-   over from one workspace to another.
+   over from one workspace to another
 3. Run the following command to copy state from the original workspace to the new 
    workspace
-
    ```
    tfdr state copy -f filters.json -o test1 -n test2
    ```
+4. Plan and apply the new workspace
+5. Run the following command to delete state of the copied over resources from the original 
+   workspace
+   ```
+   tfdr state delete -f filters.json -w test1
+   ```
+
 
 ## Example filters.json file
 - `global_resource_types` contains any resource types you would like to be moved to the new 

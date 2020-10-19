@@ -21,6 +21,14 @@ For example, if some infrastructure is set up in AWS using a terraform template 
 region failure occurs, this cli can be used while setting up new infrastructure in a new 
 region.
 
+## Usage
+```
+tfdr [command]
+```
+
+### Docs
+- [tfdr cli docs]("./docs/tfdr.md)
+
 ## Example Disaster Recovery Steps
 Here is an exmple of how this cli could be used in a disaster recovery scenario.
 The following steps assumes there is already a terraform cloud workspace (`test1`) with a 
@@ -41,7 +49,6 @@ terraform template for setting up infrastructure
    ```
    tfdr state delete -f filters.json -w test1
    ```
-
 
 ## Example filters.json file
 - `global_resource_types` contains any resource types you would like to be moved to the new 

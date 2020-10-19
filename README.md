@@ -27,7 +27,7 @@ tfdr [command]
 ```
 
 #### Usage Docs
-- [tfdr cli docs]("./docs/tfdr.md)
+- [tfdr cli docs](./docs/tfdr.md)
 
 ## Example Disaster Recovery Steps
 Here is an exmple of how this cli could be used in a disaster recovery scenario.

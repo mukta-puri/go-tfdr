@@ -26,7 +26,7 @@ region.
 tfdr [command]
 ```
 
-### Docs
+#### Usage Docs
 - [tfdr cli docs]("./docs/tfdr.md)
 
 ## Example Disaster Recovery Steps

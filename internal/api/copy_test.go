@@ -66,7 +66,7 @@ func (s *CopySuite) TestCopyTFState() {
 					s.Equal(testutils.DefaultVersion, state.Version)
 					s.Equal("", state.Lineage)
 					s.Equal(int64(1), state.Serial)
-					s.Equal(numFilters+len(config.GlobalResources), len(state.Resources))
+					s.Equal(numFilters+len(testutils.GlobalResources), len(state.Resources))
 
 					resp, err := testutils.NewJSONResponse("test2", "state-versions", "https://state")
 					s.NoError(err)

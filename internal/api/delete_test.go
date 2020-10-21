@@ -59,7 +59,7 @@ func (s *DeleteSuite) TestDeleteTFState() {
 					s.Equal(testutils.DefaultVersion, state.Version)
 					s.Equal(testutils.DefaultLineage, state.Lineage)
 					s.Equal(testutils.DefaultSerial+1, state.Serial)
-					s.Equal(testutils.DefaultNumResources()-numFilters-len(config.GlobalResources), len(state.Resources))
+					s.Equal(testutils.DefaultNumResources()-numFilters-len(testutils.GlobalResources), len(state.Resources))
 
 					resp, err := testutils.NewJSONResponse("test", "state-versions", "https://state")
 					s.NoError(err)

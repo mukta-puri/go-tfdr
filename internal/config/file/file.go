@@ -48,5 +48,5 @@ func saveConfig(cfgFile string, contents string) {
 	}
 	_ = file.Sync()
 
-	fmt.Println("\nSuccessfully configured terraform disaster recovery script. Use `tfdr config get` to view your configuration.")
+	fmt.Println("\nSuccessfully configured terraform disaster recovery cli. Use `tfdr config get` to view your configuration.")
 }

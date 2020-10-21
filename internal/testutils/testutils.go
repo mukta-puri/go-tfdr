@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/jarcoal/httpmock"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
 	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
 )
 
@@ -17,10 +16,17 @@ var defaultNonGlobalResources int = 10
 
 // DefaultTerraformVersion &
 var (
-	DefaultTerraformVersion string = "0.13.4"
-	DefaultLineage          string = "test"
-	DefaultVersion          int    = 4
-	DefaultSerial           int64  = int64(1)
+	DefaultTerraformVersion string   = "0.13.4"
+	DefaultLineage          string   = "test"
+	DefaultVersion          int      = 4
+	DefaultSerial           int64    = int64(1)
+	GlobalResources         []string = []string{
+		"aws_cloudfront_distribution",
+		"aws_cloudfront_origin_access_identity",
+		"aws_iam_access_key",
+		"aws_iam_policy_document",
+		"aws_iam_policy",
+	}
 )
 
 // NewState &
@@ -37,7 +43,7 @@ func NewState() *models.State {
 
 // DefaultNumResources &
 func DefaultNumResources() int {
-	return defaultNonGlobalResources + len(config.GlobalResources)
+	return defaultNonGlobalResources + len(GlobalResources)
 }
 
 // NewStateResources &
@@ -62,7 +68,7 @@ func NewStateResources() []models.Resource {
 		resources = append(resources, res)
 	}
 
-	for i, v := range config.GlobalResources {
+	for i, v := range GlobalResources {
 		res := models.Resource{
 			Module: fmt.Sprintf("module.test_global_module_%v", i),
 			Mode:   "managed",

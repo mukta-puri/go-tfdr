@@ -1,5 +1,6 @@
 package models
 
 type FilterConfig struct {
-	Filters []Filter `json:"filters"`
+	GlobalResourceTypes []string `json:"global_resource_types"`
+	Filters             []Filter `json:"filters"`
 }

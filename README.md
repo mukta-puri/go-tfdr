@@ -9,6 +9,8 @@
     <a href="https://github.com/tyler-technologies/go-terraform-state-copy/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/tyler-technologies/go-terraform-state-copy"></a>
     <a href="https://github.com/tyler-technologies/go-terraform-state-copy/releases/latest"><img alt="Downloads" src="https://img.shields.io/github/downloads/tyler-technologies/go-terraform-state-copy/total?color=orange"></a>
     <a href="https://github.com/tyler-technologies/go-terraform-state-copy/tree/main"><img alt="Latest Commit" src="https://img.shields.io/github/last-commit/tyler-technologies/go-terraform-state-copy?color=ff69b4"></a>
+    <a href="https://github.com/tyler-technologies/go-terraform-state-copy/releases/latest"><img alt="Go Report" src="https://goreportcard.com/badge/github.com/tyler-technologies/go-terraform-state-copy?style=flat-square"></a>
+
   </p>
 </p>
 

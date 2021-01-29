@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/tfdrerrors"
+	"github.com/tyler-technologies/go-tfdr/internal/models"
+	"github.com/tyler-technologies/go-tfdr/internal/tfdrerrors"
 )
 
 // StateFilter &

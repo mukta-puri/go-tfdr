@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/testutils"
+	"github.com/tyler-technologies/go-tfdr/internal/models"
+	"github.com/tyler-technologies/go-tfdr/internal/testutils"
 )
 
 type TestSuite struct {

@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	vpr "github.com/spf13/viper"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/config/file"
+	"github.com/tyler-technologies/go-tfdr/internal/config/file"
 	"gopkg.in/yaml.v2"
 )
 

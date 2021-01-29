@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	"github.com/jarcoal/httpmock"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
+	"github.com/tyler-technologies/go-tfdr/internal/models"
 )
 
 var defaultNonGlobalResources int = 10

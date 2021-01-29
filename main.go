@@ -1,6 +1,6 @@
 package main
 
-import "github.com/tyler-technologies/go-terraform-state-copy/cmd"
+import "github.com/tyler-technologies/go-tfdr/cmd"
 
 var version = "devbuild"
 

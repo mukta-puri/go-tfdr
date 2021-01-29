@@ -2,7 +2,7 @@ package logging
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
+	"github.com/tyler-technologies/go-tfdr/internal/config"
 )
 
 // InitLogger sets up logging level, and log formatting

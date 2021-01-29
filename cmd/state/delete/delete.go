@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/spf13/cobra"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/api"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
+	"github.com/tyler-technologies/go-tfdr/internal/api"
+	"github.com/tyler-technologies/go-tfdr/internal/config"
 )
 
 var workspaceName string

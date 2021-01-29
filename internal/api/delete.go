@@ -3,8 +3,8 @@ package api
 import (
 	"fmt"
 
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/filter"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/tfdrerrors"
+	"github.com/tyler-technologies/go-tfdr/internal/filter"
+	"github.com/tyler-technologies/go-tfdr/internal/tfdrerrors"
 )
 
 // DeleteTFStateResources &

@@ -5,10 +5,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
-	cfg "github.com/tyler-technologies/go-terraform-state-copy/cmd/config"
-	state "github.com/tyler-technologies/go-terraform-state-copy/cmd/state"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/logging"
+	cfg "github.com/tyler-technologies/go-tfdr/cmd/config"
+	state "github.com/tyler-technologies/go-tfdr/cmd/state"
+	"github.com/tyler-technologies/go-tfdr/internal/config"
+	"github.com/tyler-technologies/go-tfdr/internal/logging"
 )
 
 var rootCmd = &cobra.Command{

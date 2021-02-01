@@ -2,8 +2,8 @@ package state
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/tyler-technologies/go-terraform-state-copy/cmd/state/copy"
-	"github.com/tyler-technologies/go-terraform-state-copy/cmd/state/delete"
+	"github.com/tyler-technologies/go-tfdr/cmd/state/copy"
+	"github.com/tyler-technologies/go-tfdr/cmd/state/delete"
 )
 
 var StateCmd = &cobra.Command{

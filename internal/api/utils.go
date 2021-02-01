@@ -9,9 +9,9 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/go-tfe"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/models"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/tfdrerrors"
+	"github.com/tyler-technologies/go-tfdr/internal/config"
+	"github.com/tyler-technologies/go-tfdr/internal/models"
+	"github.com/tyler-technologies/go-tfdr/internal/tfdrerrors"
 )
 
 var httpClient = &http.Client{}

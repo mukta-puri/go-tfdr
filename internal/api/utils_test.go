@@ -10,10 +10,10 @@ import (
 	"github.com/hashicorp/go-tfe"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/suite"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/logging"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/testutils"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/tfdrerrors"
+	"github.com/tyler-technologies/go-tfdr/internal/config"
+	"github.com/tyler-technologies/go-tfdr/internal/logging"
+	"github.com/tyler-technologies/go-tfdr/internal/testutils"
+	"github.com/tyler-technologies/go-tfdr/internal/tfdrerrors"
 )
 
 type UtilSuite struct {

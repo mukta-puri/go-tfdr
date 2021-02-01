@@ -1,4 +1,4 @@
-module github.com/tyler-technologies/go-terraform-state-copy
+module github.com/tyler-technologies/go-tfdr
 
 go 1.14
 

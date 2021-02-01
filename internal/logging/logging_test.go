@@ -6,7 +6,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
+	"github.com/tyler-technologies/go-tfdr/internal/config"
 )
 
 func TestInitLogger(t *testing.T) {

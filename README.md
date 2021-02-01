@@ -4,12 +4,12 @@
   <h3 align="center">Terraform Workspace State CLI</h3>
 
   <p align="center">
-    <a href="https://github.com/tyler-technologies/go-terraform-state-copy/actions?query=workflow%3Abuild"><img alt="Build" src="https://github.com/tyler-technologies/go-terraform-state-copy/workflows/build/badge.svg"></a>
-    <a href="https://github.com/tyler-technologies/go-terraform-state-copy/actions?query=workflow%3Atest"><img alt="Test" src="https://github.com/tyler-technologies/go-terraform-state-copy/workflows/test/badge.svg"></a>
-    <a href="https://github.com/tyler-technologies/go-terraform-state-copy/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/tyler-technologies/go-terraform-state-copy"></a>
-    <a href="https://github.com/tyler-technologies/go-terraform-state-copy/releases/latest"><img alt="Downloads" src="https://img.shields.io/github/downloads/tyler-technologies/go-terraform-state-copy/total?color=orange"></a>
-    <a href="https://github.com/tyler-technologies/go-terraform-state-copy/tree/main"><img alt="Latest Commit" src="https://img.shields.io/github/last-commit/tyler-technologies/go-terraform-state-copy?color=ff69b4"></a>
-    <a href="https://github.com/tyler-technologies/go-terraform-state-copy/releases/latest"><img alt="Go Report" src="https://goreportcard.com/badge/github.com/tyler-technologies/go-terraform-state-copy?style=flat-square"></a>
+    <a href="https://github.com/tyler-technologies/go-tfdr/actions?query=workflow%3Abuild"><img alt="Build" src="https://github.com/tyler-technologies/go-tfdr/workflows/build/badge.svg"></a>
+    <a href="https://github.com/tyler-technologies/go-tfdr/actions?query=workflow%3Atest"><img alt="Test" src="https://github.com/tyler-technologies/go-tfdr/workflows/test/badge.svg"></a>
+    <a href="https://github.com/tyler-technologies/go-tfdr/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/tyler-technologies/go-tfdr"></a>
+    <a href="https://github.com/tyler-technologies/go-tfdr/releases/latest"><img alt="Downloads" src="https://img.shields.io/github/downloads/tyler-technologies/go-tfdr/total?color=orange"></a>
+    <a href="https://github.com/tyler-technologies/go-tfdr/tree/main"><img alt="Latest Commit" src="https://img.shields.io/github/last-commit/tyler-technologies/go-tfdr?color=ff69b4"></a>
+    <a href="https://github.com/tyler-technologies/go-tfdr/releases/latest"><img alt="Go Report" src="https://goreportcard.com/badge/github.com/tyler-technologies/go-tfdr?style=flat-square"></a>
 
   </p>
 </p>

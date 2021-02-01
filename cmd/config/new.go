@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
+	"github.com/tyler-technologies/go-tfdr/internal/config"
 )
 
 var newConfigCmd = &cobra.Command{

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/tyler-technologies/go-terraform-state-copy/internal/config"
+	"github.com/tyler-technologies/go-tfdr/internal/config"
 	"gopkg.in/yaml.v2"
 )
 

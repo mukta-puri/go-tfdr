@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/mupuri/go-tfdr/internal/config"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/tyler-technologies/go-tfdr/internal/config"
 )
 
 func TestInitLogger(t *testing.T) {

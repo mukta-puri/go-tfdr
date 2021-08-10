@@ -1,6 +1,6 @@
 package main
 
-import "github.com/tyler-technologies/go-tfdr/cmd"
+import "github.com/mupuri/go-tfdr/cmd"
 
 var version = "devbuild"
 

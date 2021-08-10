@@ -3,9 +3,9 @@ package copy
 import (
 	"errors"
 
+	"github.com/mupuri/go-tfdr/internal/api"
+	"github.com/mupuri/go-tfdr/internal/config"
 	"github.com/spf13/cobra"
-	"github.com/tyler-technologies/go-tfdr/internal/api"
-	"github.com/tyler-technologies/go-tfdr/internal/config"
 )
 
 var originalWorkspaceName string

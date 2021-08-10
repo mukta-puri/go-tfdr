@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	"github.com/jarcoal/httpmock"
-	"github.com/tyler-technologies/go-tfdr/internal/models"
+	"github.com/mupuri/go-tfdr/internal/models"
 )
 
 var defaultNonGlobalResources int = 10

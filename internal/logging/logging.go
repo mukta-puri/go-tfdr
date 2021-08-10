@@ -1,8 +1,8 @@
 package logging
 
 import (
+	"github.com/mupuri/go-tfdr/internal/config"
 	"github.com/sirupsen/logrus"
-	"github.com/tyler-technologies/go-tfdr/internal/config"
 )
 
 // InitLogger sets up logging level, and log formatting

@@ -3,8 +3,8 @@ package config
 import (
 	"os"
 
+	"github.com/mupuri/go-tfdr/internal/config"
 	"github.com/spf13/cobra"
-	"github.com/tyler-technologies/go-tfdr/internal/config"
 )
 
 var newConfigCmd = &cobra.Command{

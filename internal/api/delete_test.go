@@ -10,11 +10,11 @@ import (
 
 	"github.com/hashicorp/go-tfe"
 	"github.com/jarcoal/httpmock"
+	"github.com/mupuri/go-tfdr/internal/config"
+	"github.com/mupuri/go-tfdr/internal/logging"
+	"github.com/mupuri/go-tfdr/internal/testutils"
+	"github.com/mupuri/go-tfdr/internal/tfdrerrors"
 	"github.com/stretchr/testify/suite"
-	"github.com/tyler-technologies/go-tfdr/internal/config"
-	"github.com/tyler-technologies/go-tfdr/internal/logging"
-	"github.com/tyler-technologies/go-tfdr/internal/testutils"
-	"github.com/tyler-technologies/go-tfdr/internal/tfdrerrors"
 )
 
 type DeleteSuite struct {

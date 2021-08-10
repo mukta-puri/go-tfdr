@@ -1,4 +1,4 @@
-module github.com/tyler-technologies/go-tfdr
+module github.com/mupuri/go-tfdr
 
 go 1.14
 

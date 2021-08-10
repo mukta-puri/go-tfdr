@@ -1,9 +1,9 @@
 package state
 
 import (
+	"github.com/mupuri/go-tfdr/cmd/state/copy"
+	"github.com/mupuri/go-tfdr/cmd/state/delete"
 	"github.com/spf13/cobra"
-	"github.com/tyler-technologies/go-tfdr/cmd/state/copy"
-	"github.com/tyler-technologies/go-tfdr/cmd/state/delete"
 )
 
 var StateCmd = &cobra.Command{

@@ -8,8 +8,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/mupuri/go-tfdr/internal/config/file"
 	vpr "github.com/spf13/viper"
-	"github.com/tyler-technologies/go-tfdr/internal/config/file"
 	"gopkg.in/yaml.v2"
 )
 

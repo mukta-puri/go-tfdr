@@ -3,9 +3,9 @@ package filter
 import (
 	"testing"
 
+	"github.com/mupuri/go-tfdr/internal/models"
+	"github.com/mupuri/go-tfdr/internal/testutils"
 	"github.com/stretchr/testify/suite"
-	"github.com/tyler-technologies/go-tfdr/internal/models"
-	"github.com/tyler-technologies/go-tfdr/internal/testutils"
 )
 
 type TestSuite struct {

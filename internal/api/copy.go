@@ -3,9 +3,9 @@ package api
 import (
 	"fmt"
 
-	"github.com/tyler-technologies/go-tfdr/internal/filter"
-	"github.com/tyler-technologies/go-tfdr/internal/models"
-	"github.com/tyler-technologies/go-tfdr/internal/tfdrerrors"
+	"github.com/mupuri/go-tfdr/internal/filter"
+	"github.com/mupuri/go-tfdr/internal/models"
+	"github.com/mupuri/go-tfdr/internal/tfdrerrors"
 )
 
 // CopyTFState &
